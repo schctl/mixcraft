@@ -1,0 +1,17 @@
+[package]
+name = "mixcraft"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+# Logging
+env_logger = "0.9"
+log = "0.4"
+
+# Graphics
+wgpu = "0.12"
+winit = "0.26"
+
+# Other
+nalgebra-glm = "0.16"
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
