@@ -1,6 +1,7 @@
 //! A Minecraft clone.
 
-mod state;
+pub mod state;
+pub mod types;
 
 use winit::{
     event::*,

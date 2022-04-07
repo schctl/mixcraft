@@ -3,23 +3,31 @@
 use winit::event::WindowEvent;
 use winit::window::Window;
 
-/// The state of our physical device.
+use crate::types;
+
+/// Managed the state of the physical device.
 pub struct State {
     /// The surface onto which images can be rendered - part of a window.
     surface: wgpu::Surface,
     /// The device is an open connection to the physical device.
     device: wgpu::Device,
-    /// The queue is a handle to the device's command queue
+    /// The queue is a handle to the device's command queue.
     queue: wgpu::Queue,
     /// Surface configuration.
     config: wgpu::SurfaceConfiguration,
     /// The size of our surface.
     pub size: winit::dpi::PhysicalSize<u32>,
-    /// Represents a graphics pipeline and its stages.
-    /// Think of a GPU as an assembly line. It has a lot of differen
-    ///  parts doing different things, and the output is pixels rendered
-    /// on a Framebuffer. This “assembly line” is what we call the graphics pipeline.
+    /// Represents a render pipeline and its stages.
+    ///
+    /// A render/graphics pipeline is a model that describes all steps the GPU will perform
+    /// on input data to produce output. Think of a GPU as an assembly line. It has a lot of
+    /// different parts doing different things, and the output is pixels rendered
+    /// on a framebuffer. This "assembly line" is what we call the graphics pipeline.
     render_pipeline: wgpu::RenderPipeline,
+    /// A vertex buffer object.
+    vbo: types::Buffer,
+    /// An index buffer object.
+    ibo: types::Buffer,
 }
 
 impl State {
@@ -28,7 +36,7 @@ impl State {
         let size = window.inner_size();
 
         // WGPU context
-        let instance = wgpu::Instance::new(wgpu::Backends::VULKAN);
+        let instance = wgpu::Instance::new(wgpu::Backends::all());
 
         // SAFETY: window is always valid
         let surface = unsafe { instance.create_surface(&window) };
@@ -65,11 +73,31 @@ impl State {
         };
         surface.configure(&device, &config);
 
+        let render_pipeline = Self::create_pipeline(&device, &config);
+
+        // Get vertex data
+        let (vbo, ibo) = Self::get_data(&device);
+
+        Self {
+            surface,
+            device,
+            queue,
+            config,
+            size,
+            render_pipeline,
+            vbo,
+            ibo,
+        }
+    }
+
+    /// Compile shaders and create the render pipeline.
+    fn create_pipeline(
+        device: &wgpu::Device,
+        config: &wgpu::SurfaceConfiguration,
+    ) -> wgpu::RenderPipeline {
         // Compile the shader as a shader module
         let shader = device.create_shader_module(&wgpu::include_wgsl!("res/shaders/shader.wgsl"));
 
-        // A render/graphics pipeline is a model that describes all steps the GPU will perform
-        // on some input data to produce some output.
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
@@ -77,13 +105,13 @@ impl State {
                 push_constant_ranges: &[],
             });
 
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[],
+                buffers: &[types::Vertex::buffer_layout()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -110,16 +138,52 @@ impl State {
                 alpha_to_coverage_enabled: false,
             },
             multiview: None,
-        });
+        })
+    }
 
-        Self {
-            surface,
+    /// Get vertex data.
+    /// Returns a (vertex buffer, index buffer) pair.
+    pub fn get_data(device: &wgpu::Device) -> (types::Buffer, types::Buffer) {
+        const VERTICES: &[types::Vertex] = &[
+            types::Vertex {
+                position: [0.5, 0.5, 0.0],
+                color: [0.09, 0.30, 0.05, 1.0],
+            },
+            types::Vertex {
+                position: [-0.5, 0.5, 0.0],
+                color: [0.09, 0.30, 0.05, 1.0],
+            },
+            types::Vertex {
+                position: [-0.5, -0.5, 0.0],
+                color: [0.09, 0.30, 0.05, 1.0],
+            },
+            types::Vertex {
+                position: [0.5, -0.5, 0.0],
+                color: [0.09, 0.30, 0.05, 1.0],
+            },
+        ];
+
+        const INDICES: &[u16] = &[0, 1, 2, 0, 2, 3];
+
+        let vbo = types::Buffer::new(
             device,
-            queue,
-            config,
-            size,
-            render_pipeline,
-        }
+            types::BufferInitDescriptor {
+                label: Some("Vertex Buffer"),
+                usage: wgpu::BufferUsages::VERTEX,
+                contents: VERTICES,
+            },
+        );
+
+        let ibo = types::Buffer::new(
+            device,
+            types::BufferInitDescriptor {
+                label: Some("Index Buffer"),
+                usage: wgpu::BufferUsages::INDEX,
+                contents: INDICES,
+            },
+        );
+
+        (vbo, ibo)
     }
 
     /// Resize the render surface.
@@ -162,10 +226,10 @@ impl State {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
+                            r: 0.09,
+                            g: 0.03,
+                            b: 0.01,
+                            a: 1.00,
                         }),
                         store: true,
                     },
@@ -174,7 +238,9 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.draw(0..3, 0..1);
+            render_pass.set_vertex_buffer(0, self.vbo.get_inner().slice(..));
+            render_pass.set_index_buffer(self.ibo.get_inner().slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.draw_indexed(0..self.ibo.len(), 0, 0..1);
         }
 
         // Submit the command buffer to the command queue
