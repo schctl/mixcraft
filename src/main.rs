@@ -9,9 +9,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-#[tokio::main]
-async fn main() {
-    env_logger::init();
+async fn run() -> ! {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -62,5 +60,11 @@ async fn main() {
             window.request_redraw();
         }
         _ => {}
-    });
+    })
+}
+
+#[tokio::main]
+async fn main() {
+    env_logger::init();
+    run().await
 }

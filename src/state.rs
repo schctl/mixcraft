@@ -3,7 +3,10 @@
 use winit::event::WindowEvent;
 use winit::window::Window;
 
-use crate::types;
+use crate::types::{
+    buffer::{Buffer, BufferInitDescriptor},
+    Vertex,
+};
 
 /// Managed the state of the physical device.
 pub struct State {
@@ -25,9 +28,9 @@ pub struct State {
     /// on a framebuffer. This "assembly line" is what we call the graphics pipeline.
     render_pipeline: wgpu::RenderPipeline,
     /// A vertex buffer object.
-    vbo: types::Buffer,
+    vbo: Buffer,
     /// An index buffer object.
-    ibo: types::Buffer,
+    ibo: Buffer,
 }
 
 impl State {
@@ -111,7 +114,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[types::Vertex::buffer_layout()],
+                buffers: &[Vertex::BUFFER_LAYOUT],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -143,21 +146,21 @@ impl State {
 
     /// Get vertex data.
     /// Returns a (vertex buffer, index buffer) pair.
-    pub fn get_data(device: &wgpu::Device) -> (types::Buffer, types::Buffer) {
-        const VERTICES: &[types::Vertex] = &[
-            types::Vertex {
+    pub fn get_data(device: &wgpu::Device) -> (Buffer, Buffer) {
+        const VERTICES: &[Vertex] = &[
+            Vertex {
                 position: [0.5, 0.5, 0.0],
                 color: [0.09, 0.30, 0.05, 1.0],
             },
-            types::Vertex {
+            Vertex {
                 position: [-0.5, 0.5, 0.0],
                 color: [0.09, 0.30, 0.05, 1.0],
             },
-            types::Vertex {
+            Vertex {
                 position: [-0.5, -0.5, 0.0],
                 color: [0.09, 0.30, 0.05, 1.0],
             },
-            types::Vertex {
+            Vertex {
                 position: [0.5, -0.5, 0.0],
                 color: [0.09, 0.30, 0.05, 1.0],
             },
@@ -165,18 +168,18 @@ impl State {
 
         const INDICES: &[u16] = &[0, 1, 2, 0, 2, 3];
 
-        let vbo = types::Buffer::new(
+        let vbo = Buffer::new(
             device,
-            types::BufferInitDescriptor {
+            BufferInitDescriptor {
                 label: Some("Vertex Buffer"),
                 usage: wgpu::BufferUsages::VERTEX,
                 contents: VERTICES,
             },
         );
 
-        let ibo = types::Buffer::new(
+        let ibo = Buffer::new(
             device,
-            types::BufferInitDescriptor {
+            BufferInitDescriptor {
                 label: Some("Index Buffer"),
                 usage: wgpu::BufferUsages::INDEX,
                 contents: INDICES,
