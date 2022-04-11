@@ -1,6 +1,7 @@
 //! Type definitions.
 
 pub mod buffer;
+pub mod texture;
 
 /// Describes a point in 3D space.
 #[repr(C)]
