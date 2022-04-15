@@ -62,7 +62,7 @@ pub struct BindGroup {
 }
 
 impl BindGroup {
-    pub fn new(device: &wgpu::Device, desc: BindGroupDescriptor<'_>) -> BindGroup {
+    pub fn new(device: &wgpu::Device, desc: &BindGroupDescriptor<'_>) -> BindGroup {
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: desc.layout_label.as_deref(),
             entries: &desc.layout_entries

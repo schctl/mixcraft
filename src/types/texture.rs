@@ -47,9 +47,9 @@ pub struct Texture {
 
 impl Texture {
     pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        desc: TextureDescriptor<'_>,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        desc: &TextureDescriptor<'_>,
         sampler_desc: Option<&wgpu::SamplerDescriptor>,
     ) -> Self {
         let inner = device.create_texture(&desc.get_raw());

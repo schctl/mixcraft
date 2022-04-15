@@ -170,7 +170,7 @@ impl State {
 
         let vbo = Buffer::new(
             device,
-            BufferInitDescriptor {
+            &BufferInitDescriptor {
                 label: Some("Vertex Buffer"),
                 usage: wgpu::BufferUsages::VERTEX,
                 contents: VERTICES,
@@ -179,7 +179,7 @@ impl State {
 
         let ibo = Buffer::new(
             device,
-            BufferInitDescriptor {
+            &BufferInitDescriptor {
                 label: Some("Index Buffer"),
                 usage: wgpu::BufferUsages::INDEX,
                 contents: INDICES,

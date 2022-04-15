@@ -28,7 +28,7 @@ pub struct Buffer {
 impl Buffer {
     pub fn new<A: bytemuck::NoUninit>(
         device: &wgpu::Device,
-        desc: BufferInitDescriptor<'_, A>,
+        desc: &BufferInitDescriptor<'_, A>,
     ) -> Self {
         let len = desc.contents.len() as u32;
         Self {
