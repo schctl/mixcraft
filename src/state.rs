@@ -4,7 +4,9 @@ use winit::event::WindowEvent;
 use winit::window::Window;
 
 use crate::types::{
+    bind_group::{BindGroup, BindGroupDescriptor, BindingResource},
     buffer::{Buffer, BufferInitDescriptor},
+    texture::{Texture, TextureDescriptor},
     Vertex,
 };
 
@@ -31,6 +33,8 @@ pub struct State {
     vbo: Buffer,
     /// An index buffer object.
     ibo: Buffer,
+    /// The bind group for diffuse textures.
+    diffuse_bind_group: BindGroup,
 }
 
 impl State {
@@ -76,7 +80,48 @@ impl State {
         };
         surface.configure(&device, &config);
 
-        let render_pipeline = Self::create_pipeline(&device, &config);
+        // Texture stuff
+        let dirt = image::load_from_memory(include_bytes!("res/textures/dirt.png")).unwrap();
+
+        let diffuse_texture = Texture::new(
+            &device,
+            &queue,
+            &TextureDescriptor {
+                label: Some("dirt_texture"),
+                mip_level_count: 1,
+                sample_count: 1,
+                image: &dirt,
+            },
+            None,
+        );
+
+        let diffuse_bind_group = BindGroup::new(
+            &device,
+            &BindGroupDescriptor::new(
+                Some("diffuse_texture_group"),
+                [
+                    BindingResource {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        resource: wgpu::BindingResource::TextureView(diffuse_texture.get_view()),
+                    },
+                    BindingResource {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        resource: wgpu::BindingResource::Sampler(diffuse_texture.get_sampler()),
+                    },
+                ],
+            ),
+        );
+
+        let render_pipeline =
+            Self::create_pipeline(&device, &config, &[diffuse_bind_group.get_layout()]);
 
         // Get vertex data
         let (vbo, ibo) = Self::get_data(&device);
@@ -90,6 +135,7 @@ impl State {
             render_pipeline,
             vbo,
             ibo,
+            diffuse_bind_group,
         }
     }
 
@@ -97,6 +143,7 @@ impl State {
     fn create_pipeline(
         device: &wgpu::Device,
         config: &wgpu::SurfaceConfiguration,
+        bind_group_layouts: &[&wgpu::BindGroupLayout],
     ) -> wgpu::RenderPipeline {
         // Compile the shader as a shader module
         let shader = device.create_shader_module(&wgpu::include_wgsl!("res/shaders/shader.wgsl"));
@@ -104,7 +151,7 @@ impl State {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[],
+                bind_group_layouts,
                 push_constant_ranges: &[],
             });
 
@@ -150,19 +197,19 @@ impl State {
         const VERTICES: &[Vertex] = &[
             Vertex {
                 position: [0.5, 0.5, 0.0],
-                color: [0.09, 0.30, 0.05, 1.0],
+                texture: [1.0, 1.0],
             },
             Vertex {
                 position: [-0.5, 0.5, 0.0],
-                color: [0.09, 0.30, 0.05, 1.0],
+                texture: [-1.0, 1.0],
             },
             Vertex {
                 position: [-0.5, -0.5, 0.0],
-                color: [0.09, 0.30, 0.05, 1.0],
+                texture: [-1.0, -1.0],
             },
             Vertex {
                 position: [0.5, -0.5, 0.0],
-                color: [0.09, 0.30, 0.05, 1.0],
+                texture: [1.0, -1.0],
             },
         ];
 
@@ -241,6 +288,7 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_bind_group(0, self.diffuse_bind_group.get_inner(), &[]);
             render_pass.set_vertex_buffer(0, self.vbo.get_inner().slice(..));
             render_pass.set_index_buffer(self.ibo.get_inner().slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.ibo.len(), 0, 0..1);

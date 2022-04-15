@@ -6,7 +6,6 @@ pub struct TextureDescriptor<'a> {
     pub label: wgpu::Label<'a>,
     pub mip_level_count: u32,
     pub sample_count: u32,
-    pub usage: wgpu::TextureUsages,
     pub image: &'a image::DynamicImage,
 }
 
@@ -18,7 +17,7 @@ impl<'a> TextureDescriptor<'a> {
             sample_count: self.sample_count,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: self.usage,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             size: self.get_size(),
         }
     }

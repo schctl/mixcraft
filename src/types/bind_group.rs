@@ -45,7 +45,8 @@ impl<'a> BindGroupDescriptor<'a> {
         resources: T,
     ) -> Self {
         let layout_label = label.map(|x| format!("{x}_layout"));
-        let (layout_entries, bind_entries) = resources.into_iter().map(|x| x.into_entries()).unzip();
+        let (layout_entries, bind_entries) =
+            resources.into_iter().map(|x| x.into_entries()).unzip();
 
         Self {
             layout_label,
@@ -65,19 +66,16 @@ impl BindGroup {
     pub fn new(device: &wgpu::Device, desc: &BindGroupDescriptor<'_>) -> BindGroup {
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: desc.layout_label.as_deref(),
-            entries: &desc.layout_entries
+            entries: &desc.layout_entries,
         });
 
         let inner = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: desc.bind_label.as_deref(),
+            label: desc.bind_label,
             layout: &layout,
-            entries: &desc.bind_entries
+            entries: &desc.bind_entries,
         });
 
-        Self {
-            layout,
-            inner
-        }
+        Self { layout, inner }
     }
 
     #[inline]
