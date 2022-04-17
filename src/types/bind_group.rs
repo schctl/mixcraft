@@ -45,14 +45,24 @@ impl<'a> BindGroupDescriptor<'a> {
         resources: T,
     ) -> Self {
         let layout_label = label.map(|x| format!("{x}_layout"));
-        let (layout_entries, bind_entries) =
-            resources.into_iter().map(|x| x.into_entries()).unzip();
+        let (layout_entries, bind_entries) = resources
+            .into_iter()
+            .map(BindingResource::into_entries)
+            .unzip();
 
         Self {
             layout_label,
             layout_entries,
             bind_label: label,
             bind_entries,
+        }
+    }
+
+    #[inline]
+    fn as_layout_descriptor(&self) -> wgpu::BindGroupLayoutDescriptor {
+        wgpu::BindGroupLayoutDescriptor {
+            label: self.layout_label.as_deref(),
+            entries: &self.layout_entries,
         }
     }
 }
@@ -64,27 +74,36 @@ pub struct BindGroup {
 
 impl BindGroup {
     pub fn new(device: &wgpu::Device, desc: &BindGroupDescriptor<'_>) -> BindGroup {
-        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: desc.layout_label.as_deref(),
-            entries: &desc.layout_entries,
-        });
+        Self::with_layout(
+            device,
+            device.create_bind_group_layout(&desc.as_layout_descriptor()),
+            desc.bind_label,
+            &desc.bind_entries,
+        )
+    }
 
+    pub fn with_layout(
+        device: &wgpu::Device,
+        layout: wgpu::BindGroupLayout,
+        label: wgpu::Label<'_>,
+        entries: &[wgpu::BindGroupEntry<'_>],
+    ) -> Self {
         let inner = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: desc.bind_label,
+            label,
             layout: &layout,
-            entries: &desc.bind_entries,
+            entries,
         });
 
-        Self { layout, inner }
+        Self { inner, layout }
     }
 
     #[inline]
-    pub const fn get_inner(&self) -> &wgpu::BindGroup {
+    pub const fn inner(&self) -> &wgpu::BindGroup {
         &self.inner
     }
 
     #[inline]
-    pub const fn get_layout(&self) -> &wgpu::BindGroupLayout {
+    pub const fn layout(&self) -> &wgpu::BindGroupLayout {
         &self.layout
     }
 }

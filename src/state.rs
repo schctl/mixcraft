@@ -108,20 +108,20 @@ impl State {
                             view_dimension: wgpu::TextureViewDimension::D2,
                             multisampled: false,
                         },
-                        resource: wgpu::BindingResource::TextureView(diffuse_texture.get_view()),
+                        resource: wgpu::BindingResource::TextureView(diffuse_texture.view()),
                     },
                     BindingResource {
                         binding: 1,
                         visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                        resource: wgpu::BindingResource::Sampler(diffuse_texture.get_sampler()),
+                        resource: wgpu::BindingResource::Sampler(diffuse_texture.sampler()),
                     },
                 ],
             ),
         );
 
         let render_pipeline =
-            Self::create_pipeline(&device, &config, &[diffuse_bind_group.get_layout()]);
+            Self::create_pipeline(&device, &config, &[diffuse_bind_group.layout()]);
 
         // Get vertex data
         let (vbo, ibo) = Self::get_data(&device);
@@ -288,9 +288,9 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, self.diffuse_bind_group.get_inner(), &[]);
-            render_pass.set_vertex_buffer(0, self.vbo.get_inner().slice(..));
-            render_pass.set_index_buffer(self.ibo.get_inner().slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.set_bind_group(0, self.diffuse_bind_group.inner(), &[]);
+            render_pass.set_vertex_buffer(0, self.vbo.inner().slice(..));
+            render_pass.set_index_buffer(self.ibo.inner().slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.ibo.len(), 0, 0..1);
         }
 

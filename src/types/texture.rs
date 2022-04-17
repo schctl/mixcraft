@@ -10,7 +10,8 @@ pub struct TextureDescriptor<'a> {
 }
 
 impl<'a> TextureDescriptor<'a> {
-    pub fn get_raw(&self) -> wgpu::TextureDescriptor {
+    #[inline]
+    pub fn as_raw(&self) -> wgpu::TextureDescriptor {
         wgpu::TextureDescriptor {
             label: self.label,
             mip_level_count: self.mip_level_count,
@@ -18,17 +19,12 @@ impl<'a> TextureDescriptor<'a> {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-            size: self.get_size(),
+            size: self.size(),
         }
     }
 
     #[inline]
-    pub fn get_data(&self) -> &[u8] {
-        self.image.as_bytes()
-    }
-
-    #[inline]
-    pub fn get_size(&self) -> wgpu::Extent3d {
+    pub fn size(&self) -> wgpu::Extent3d {
         let size = self.image.dimensions();
         wgpu::Extent3d {
             width: size.0,
@@ -51,9 +47,9 @@ impl Texture {
         desc: &TextureDescriptor<'_>,
         sampler_desc: Option<&wgpu::SamplerDescriptor>,
     ) -> Self {
-        let inner = device.create_texture(&desc.get_raw());
+        let inner = device.create_texture(&desc.as_raw());
 
-        let size = desc.get_size();
+        let size = desc.size();
 
         queue.write_texture(
             wgpu::ImageCopyTexture {
@@ -62,7 +58,7 @@ impl Texture {
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
-            desc.get_data(),
+            desc.image.as_bytes(),
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: std::num::NonZeroU32::new(4 * size.width),
@@ -94,17 +90,17 @@ impl Texture {
     }
 
     #[inline]
-    pub const fn get_inner(&self) -> &wgpu::Texture {
+    pub const fn inner(&self) -> &wgpu::Texture {
         &self.inner
     }
 
     #[inline]
-    pub const fn get_view(&self) -> &wgpu::TextureView {
+    pub const fn view(&self) -> &wgpu::TextureView {
         &self.view
     }
 
     #[inline]
-    pub const fn get_sampler(&self) -> &wgpu::Sampler {
+    pub const fn sampler(&self) -> &wgpu::Sampler {
         &self.sampler
     }
 }

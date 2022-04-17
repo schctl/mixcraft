@@ -66,5 +66,5 @@ async fn run() -> ! {
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    run().await
+    run().await;
 }
