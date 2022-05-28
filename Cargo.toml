@@ -1,7 +1,9 @@
 [package]
 name = "mixcraft"
 version = "0.0.1"
+authors = ["Sachin Cherian <sachinctl@protonmail.com>"]
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 # Logging
@@ -15,5 +17,5 @@ winit = "0.26"
 
 # Other
 bytemuck = { version = "1.9", features = [ "derive" ] }
-nalgebra-glm = "0.16"
-tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+nalgebra-glm = "0.17"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
