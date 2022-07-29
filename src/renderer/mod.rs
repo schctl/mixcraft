@@ -1,9 +1,11 @@
 //! State of the GPU.
 
+pub mod types;
+
 use winit::event::WindowEvent;
 use winit::window::Window;
 
-use crate::types::{
+use types::{
     bind_group::{BindGroup, BindGroupDescriptor, BindingResource},
     buffer::{Buffer, BufferInitDescriptor},
     texture::{Texture, TextureDescriptor},
@@ -11,7 +13,7 @@ use crate::types::{
 };
 
 /// Managed the state of the physical device.
-pub struct State {
+pub struct Renderer {
     /// The surface onto which images can be rendered - part of a window.
     surface: wgpu::Surface,
     /// The device is an open connection to the physical device.
@@ -37,7 +39,7 @@ pub struct State {
     diffuse_bind_group: BindGroup,
 }
 
-impl State {
+impl Renderer {
     /// Retrieve and store the GPU's state.
     pub async fn new(window: &Window) -> Self {
         let size = window.inner_size();
@@ -81,7 +83,7 @@ impl State {
         surface.configure(&device, &config);
 
         // Texture stuff
-        let dirt = image::load_from_memory(include_bytes!("res/textures/dirt.png")).unwrap();
+        let dirt = image::load_from_memory(include_bytes!("../../res/textures/dirt.png")).unwrap();
 
         let diffuse_texture = Texture::new(
             &device,
@@ -146,7 +148,7 @@ impl State {
         bind_group_layouts: &[&wgpu::BindGroupLayout],
     ) -> wgpu::RenderPipeline {
         // Compile the shader as a shader module
-        let shader = device.create_shader_module(wgpu::include_wgsl!("res/shaders/shader.wgsl"));
+        let shader = device.create_shader_module(wgpu::include_wgsl!("../../res/shaders/shader.wgsl"));
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

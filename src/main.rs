@@ -1,7 +1,6 @@
 //! A Minecraft clone.
 
-pub mod state;
-pub mod types;
+pub mod renderer;
 
 use winit::{
     event::*,
@@ -9,11 +8,13 @@ use winit::{
     window::WindowBuilder,
 };
 
+use renderer::Renderer;
+
 async fn run() -> ! {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    let mut state = state::State::new(&window).await;
+    let mut state = Renderer::new(&window).await;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
