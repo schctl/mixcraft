@@ -1,6 +1,6 @@
 //! Type definitions.
 
-pub mod bind_group;
+pub mod binding;
 pub mod buffer;
 pub mod texture;
 

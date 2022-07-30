@@ -6,7 +6,7 @@ use winit::event::WindowEvent;
 use winit::window::Window;
 
 use types::{
-    bind_group::{BindGroup, BindGroupDescriptor, BindingResource},
+    binding,
     buffer::{Buffer, BufferInitDescriptor},
     texture::{Texture, TextureDescriptor},
     Vertex,
@@ -36,7 +36,7 @@ pub struct Renderer {
     /// An index buffer object.
     ibo: Buffer,
     /// The bind group for diffuse textures.
-    diffuse_bind_group: BindGroup,
+    diffuse_bind_group: binding::Group,
 }
 
 impl Renderer {
@@ -97,29 +97,28 @@ impl Renderer {
             None,
         );
 
-        let diffuse_bind_group = BindGroup::new(
+        let diffuse_bind_group = binding::Group::new(
             &device,
-            &BindGroupDescriptor::new(
-                Some("diffuse_texture_group"),
-                [
-                    BindingResource {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        resource: wgpu::BindingResource::TextureView(diffuse_texture.view()),
+            Some("diffuse_texture_group"),
+            [
+                binding::group::Entry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
                     },
-                    BindingResource {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                        resource: wgpu::BindingResource::Sampler(diffuse_texture.sampler()),
-                    },
-                ],
-            ),
+                    resource: wgpu::BindingResource::TextureView(diffuse_texture.view()),
+                },
+                binding::group::Entry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    resource: wgpu::BindingResource::Sampler(diffuse_texture.sampler()),
+                },
+            ]
+            .into_iter(),
         );
 
         let render_pipeline =
