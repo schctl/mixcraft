@@ -66,6 +66,10 @@ async fn run() -> ! {
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
+    tracing_subscriber::fmt()
+        .with_timer(tracing_subscriber::fmt::time::uptime())
+        .with_level(true)
+        .init();
+
     run().await;
 }

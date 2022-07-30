@@ -148,7 +148,8 @@ impl Renderer {
         bind_group_layouts: &[&wgpu::BindGroupLayout],
     ) -> wgpu::RenderPipeline {
         // Compile the shader as a shader module
-        let shader = device.create_shader_module(wgpu::include_wgsl!("../../res/shaders/shader.wgsl"));
+        let shader =
+            device.create_shader_module(wgpu::include_wgsl!("../../res/shaders/shader.wgsl"));
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -254,6 +255,7 @@ impl Renderer {
 
     pub fn update(&mut self) {}
 
+    #[profiling::function]
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
 
@@ -302,6 +304,7 @@ impl Renderer {
         // Present this texture on the surface
         output.present();
 
+        profiling::finish_frame!();
         Ok(())
     }
 }

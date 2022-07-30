@@ -6,10 +6,6 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-# Logging
-env_logger = "0.9"
-log = "0.4"
-
 # Graphics
 image = "0.24"
 wgpu = "0.13"
@@ -19,3 +15,13 @@ winit = "0.26"
 bytemuck = { version = "1.9", features = [ "derive" ] }
 nalgebra-glm = "0.17"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Profiling and tracing
+profiling = { version = "1" }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[features]
+default = [
+    "profiling/profile-with-tracing"
+]
